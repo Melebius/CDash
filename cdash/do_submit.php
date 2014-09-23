@@ -39,6 +39,11 @@ function do_submit($filehandle, $projectid, $expected_md5='', $do_checksum=true,
     curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 1);
+    if ($CDASH_USE_HTTPS)
+      {
+      curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+      }
     curl_exec($ch);
     curl_close($ch);
     }
@@ -159,12 +164,28 @@ function do_submit_asynchronous($filehandle, $projectid, $expected_md5='')
   if(function_exists("curl_init") == TRUE)
     {
     $currentURI = get_server_URI(true);
+    $request = $currentURI."/cdash/dailyupdatescurl.php?projectid=".$projectid;
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $request);
+    curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 1);
+    if ($CDASH_USE_HTTPS)
+      {
+      curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+      }
+    curl_exec($ch);
+    curl_close($ch);
+
     $clientscheduleid = isset($_GET["clientscheduleid"]) ? $_GET["clientscheduleid"] : 0;
     if($clientscheduleid !== 0)
       {
       pdo_query("INSERT INTO client_jobschedule2submission (scheduleid,submissionid) ".
         "VALUES ('$clientscheduleid','$submissionid')");
       }
+    // Call process submissions via cURL.
     $request = $currentURI."/cdash/processsubmissions.php?projectid=".$projectid;
 
     $ch = curl_init();
