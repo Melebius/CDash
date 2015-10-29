@@ -90,5 +90,4 @@ class TruncateOutputTestCase extends KWWebTestCase
             remove_build($this->BuildId);
         }
     }
-
 }
